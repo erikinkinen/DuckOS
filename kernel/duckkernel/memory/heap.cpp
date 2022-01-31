@@ -5,17 +5,13 @@
 Heap Heap::k;
 
 void Heap::init() {
-#if KDEBUG == true
-    Logger::info("Initializing kernel heap...");
-#endif
+    LOG_DEBUG("Initializing kernel heap...");
     first = last = (HeapBlockHeader *)PageFrameAllocator::alloc();
     first->size = 4096;
     first->previous = nullptr;
     first->next = nullptr;
     first->used = false;
-#if KDEBUG == true
-    Logger::ok();
-#endif
+    LOG_DEBUG_OK();
 }
 
 void Heap::free(void *address) {

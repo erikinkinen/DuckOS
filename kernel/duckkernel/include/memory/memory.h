@@ -8,7 +8,7 @@ typedef struct {
     void *virtualAddress;
     unsigned long long pageCount;
     unsigned long long attributes;
-} efi_mem_desc_t;
+} EFIMemoryDescriptor;
 
 class Memory {
 public:

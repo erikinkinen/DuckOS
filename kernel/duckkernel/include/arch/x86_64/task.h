@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fs/fsmanager.h>
+#include <interrupts/idt.h>
 #include <memory/paging.h>
 #include <memory/pagetable.h>
 
@@ -45,32 +46,39 @@ typedef struct {
 	unsigned long long saved[5]; 
 } KThreadContext;
 
-typedef struct {
-	KThreadContext context;
-	unsigned char fp_regs[512] __attribute__((aligned(16)));
-	PageTableManager *ptm;
-} Thread;
+typedef struct ProcessImageMap ProcessImageMap;
+struct ProcessImageMap {
+   void *vaddr;
+   void *paddr;
+   unsigned long long size;
+   ProcessImageMap *next;
+};
 
 struct Task;
 struct Task
 {
    long long id;
-   Thread thread;
+	PageTableManager *ptm;
+   ProcessImageMap *pim;
+   void *stack_page;
    FDTable *fd_table;
    Task *next;
+   InterruptRegisters regs;
 };
 typedef struct Task Task;
 
 class TaskManager {
 public:
    static void init();
-   static void task_switch();
-   static long long fork();
+   static void task_switch(InterruptFrame *frame, unsigned long long rax);
+   static InterruptRegisters *task_switch(InterruptRegisters *regs);
+   static long long fork(InterruptFrame *frame);
+   static void fork(InterruptRegisters *regs);
    static void user_exec(char const *path, char const **argv,  char const **envp);
-   static void move_stack(void *newstack);
+   static void move_stack(void *oldstack, void *newstack);
    static long long getpid();
-   static volatile Task *current_task;
+   static Task *current_task;
 private:
-   static volatile Task *ready_queue;
+   static Task *ready_queue;
    static long long next_pid;
 };

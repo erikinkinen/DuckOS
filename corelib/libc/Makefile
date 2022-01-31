@@ -12,6 +12,9 @@ OBJS += \
 		stdio/printf.o \
 		stdio/puts.o \
 		stdio/vfprintf.o \
+		string/memccpy.o \
+		string/memchr.o \
+		string/memcmp.o \
 		string/strlen.o
 
 ARCHOBJS += \

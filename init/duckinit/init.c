@@ -1,10 +1,20 @@
 #include <stdio.h>
+#include <stdint.h>
 
 int main(void) {
-	printf("Hello, world!\n===========================================================================\n", 0xDEADBEEF);
-	printf("Once upon a time there was a lonely program which lived inside an initial ramdisk. \nIts name was \"/init\" and it had nothing to do.\n\n");
-
-	printf("//=========\\\\\n|| TESTING ||\n\\\\=========//\n\n");
-	printf("%%x: %x\n%%X: %X\n%%d: %d\n%%u: %u\n", 0xCAFEBABE, 0xDEADBEEF, -123, 321);
+	uint64_t cid, pid;
+	asm volatile (
+			"int $0x80;\n\t" 
+			: "=a"(cid)
+			: "a"(0x100)
+            : "memory");
+	asm volatile (
+			"int $0x80;\n\t" 
+			: "=a"(pid)
+			: "a"(0x101)
+            : "memory");
+			
+	printf("fork() = %d\ngetpid() = %d\n", cid, pid);
+	
 	return 0;
 }

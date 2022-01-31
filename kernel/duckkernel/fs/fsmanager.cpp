@@ -61,13 +61,9 @@ FDTable::FDTable() :
     first(nullptr), last(nullptr) {}
 
 void FSManager::init() {
-#if KDEBUG == true
-    Logger::info("Initializing file system support...");
-#endif
+    LOG_DEBUG("Initializing file system support...");
     root = new Initrd(nullptr);
-#if KDEBUG == true
-    Logger::ok();
-#endif
+    LOG_DEBUG_OK();
 }
 
 signed long long FSManager::open(const char *path, unsigned long long mode) {

@@ -21,16 +21,12 @@ GDTR gdtr = {
 };
 
 void GDTManager::init() {
-#if KDEBUG == true
-    Logger::info("Initializing GDT...");
-#endif
+    LOG_DEBUG("Initializing GDT...");
     globalDT.tss.base0 = (unsigned long long)(&taskSS) & 0xFFFF;
     globalDT.tss.base1 = ((unsigned long long)(&taskSS) >> 16) & 0xFF;
     globalDT.tss.base2 = ((unsigned long long)(&taskSS) >> 24) & 0xFF;
     globalDT.tss.limit0 = 103;
     loadGDT(&gdtr);
     loadTSS();
-#if KDEBUG == true
-    Logger::ok();
-#endif
+    LOG_DEBUG_OK();
 }

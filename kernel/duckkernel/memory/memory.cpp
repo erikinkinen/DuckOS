@@ -1,26 +1,17 @@
 #include <memory/memory.h>
 #include <memory/heap.h>
 #include <memory/pageframe.h>
-#include <drivers/serial.h>
 #include <utils/logger.h>
-#include <utils/utils.h>
 
 unsigned long long Memory::m_size = 0;
 
 void Memory::init() {
-#if KDEBUG == true
-    Logger::info("Calculating memory size...");
-#endif
-
+    LOG_DEBUG("Calculating memory size...");
     for (unsigned long long i = 0; i < bInfo.memmap.descCount; ++i) {
-        efi_mem_desc_t *descriptor = (efi_mem_desc_t *)((char*)bInfo.memmap.base_addr + (i * bInfo.memmap.descSize));
+        EFIMemoryDescriptor *descriptor = (EFIMemoryDescriptor *)((char*)bInfo.memmap.base_addr + (i * bInfo.memmap.descSize));
         m_size += descriptor->pageCount * 4096;
     }
-
-#if KDEBUG == true
-    Logger::ok();
-#endif
-
+    LOG_DEBUG_OK();
     PageFrameAllocator::init();
     Heap::k.init();
 }

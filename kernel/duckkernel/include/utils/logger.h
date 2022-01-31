@@ -5,6 +5,19 @@
 #include <memory/pageframe.h>
 #include <utils/utils.h>
 
+#if KDEBUG == true
+#define LOG_INIT() {SerialPort com1(1); Logger::init(&com1);}
+#define LOG_DEBUG(str) Logger::info(str)
+#define LOG_DEBUG_OK() Logger::ok()
+#define LOG_MEM_REPORT() Logger::memory_report()
+#else
+#define LOG_INIT()
+#define LOG_DEBUG(str)
+#define LOG_DEBUG_OK()
+#define LOG_MEM_REPORT()
+#endif
+
+
 extern char buffer[256];
 extern unsigned int cursor_x, console_scale_x;
 extern unsigned int cursor_y, console_scale_y;
@@ -59,10 +72,13 @@ inline void print(const char *str, unsigned int color) {
 
 class Logger {
 public:
-    static void init(SerialPort *com1);
+    static void init(SerialPort *serial);
     static void info(const char *str);
     static void warn(const char *str);
     static void error(const char *str);
     static void ok();
-    static void report();
+    static void memory_report();
+    static void print_screen(const char *str, unsigned int color);
+private:
+    static SerialPort *serial;
 };

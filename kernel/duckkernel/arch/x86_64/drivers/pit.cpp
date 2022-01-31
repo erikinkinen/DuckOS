@@ -2,14 +2,11 @@
 #include <drivers/ports.h>
 #include <interrupts/idt.h>
 #include <utils/logger.h>
+#include <task.h>
 
 void PIT::init() {
-#if KDEBUG == true
-    Logger::info("(PIT)");
-#endif
-    asm volatile ("cli");    
-    IDTManager::register_handler(0x20, tick);
-    unsigned short divisor = 0x400;
+    LOG_DEBUG("(PIT)...");
+    unsigned short divisor = 0x1000;
     outb(0x43, 0x36);
     io_wait();
     unsigned char l = (unsigned char)(divisor & 0xFF);
@@ -18,11 +15,10 @@ void PIT::init() {
     io_wait();
     outb(0x40, h);
     io_wait();
-    asm volatile ("sti");
 }
-
-__attribute__((interrupt)) 
-void tick(InterruptFrame* frame) {
+extern "C" {
+void tick(InterruptFrame* frame, unsigned long long rax) {
     PICManager::end_master();
     Timer::tick(); 
+}
 }

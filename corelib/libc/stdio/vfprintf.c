@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdint.h>
 #include <syscall.h>
 
 static const char xdigits[16] = {
@@ -8,12 +9,13 @@ static const char xdigits[16] = {
 };
 
 static char *fmt_x(uint64_t x, char *s, int lower) {
+    if (x == 0) *--s = '0';
 	for (; x; x>>=4) *--s = xdigits[(x&15)]|lower;
 	return s;
 }
 
-static char *fmt_u(uint64_t x, char *s)
-{
+static char *fmt_u(uint64_t x, char *s){
+    if (x == 0) *--s = '0';
 	for (; x; x/=10) *--s = '0' + x%10;
 	return s;
 }

@@ -1,17 +1,10 @@
 #include <drivers/timer.h>
 #include <utils/logger.h>
-#include <task.h>
 
 void Timer::init() {
-#if KDEBUG == true
-    Logger::info("Initializing timer ");
-#endif
+    LOG_DEBUG("Initializing timer ");
     TIMER::init();
-#if KDEBUG == true
-    Logger::ok();
-#endif
+    LOG_DEBUG_OK();
 }
 
-void Timer::tick() {
-    TaskManager::task_switch();
-}
+void Timer::tick() {}

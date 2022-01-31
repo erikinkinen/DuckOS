@@ -7,10 +7,17 @@
 extern "C" {
 #endif
 
-void* memcpy(void*, const void*, size_t);
-void* memset(void*, int, size_t);
-char* strcpy(char*, const char*);
+void *memccpy(void *s1, const void *s2, int c, size_t n);
+void *memchr(const void *s, int c, size_t n);
+int memcmp(const void *s1, const void *s2, size_t n);
+void *memcpy(void*, const void*, size_t);
+void *memset(void*, int, size_t);
+char *strcpy(char*, const char*);
+int strcmp(const char*, const char*);
+int strncmp(const char *s1, const char *s2, size_t n);
 size_t strlen(const char*);
+char *strchr(const char *s, int c);
+char *strstr(const char *s, const char *subs);
 
 #ifdef __cplusplus
 }

@@ -2,6 +2,7 @@
 
 .global _start
 _start:
+	movq $1, %rax
 	# Set up end of the stack frame linked list.
 	movq $0, %rbp
 	pushq %rbp # rip=0
@@ -26,7 +27,7 @@ _start:
 	call main
 
 	# Terminate the process with the exit code.
-	movl %eax, %edi
+	movq %rax, %rdi
 	call exit
 exit:
 	jmp exit

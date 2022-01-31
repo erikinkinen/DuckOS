@@ -10,21 +10,17 @@ unsigned long long PageFrameAllocator::usedMemory;
 
 extern unsigned long long _kernelStart;
 extern unsigned long long _kernelEnd;
-extern SerialPort *com1_ptr;
 extern char buffer[256];
 
 void PageFrameAllocator::init() {
-#if KDEBUG == true
-    Logger::info("Initializing page frame allocator...");
-#endif
+    LOG_DEBUG("Initializing page frame allocator...");
 
     // Find the largest free hole in memory
     void *largestFreeSegment = nullptr;
     unsigned long long largestFreeSegmentSize = 0;
     for (int i = 0; i < bInfo.memmap.descCount; ++i) {
-        efi_mem_desc_t *desc = (efi_mem_desc_t *)((unsigned long long)bInfo.memmap.base_addr + i * bInfo.memmap.descSize);
-        if (desc->type == 7) {
-            // EfiConventionalMemory
+        EFIMemoryDescriptor *desc = (EFIMemoryDescriptor *)((unsigned long long)bInfo.memmap.base_addr + i * bInfo.memmap.descSize);
+        if (desc->type == 7) { // EfiConventionalMemory
             if (desc->pageCount * 4096 > largestFreeSegmentSize) {
                 largestFreeSegment = desc->physicalAddress;
                 largestFreeSegmentSize = desc->pageCount * 4096;
@@ -38,10 +34,11 @@ void PageFrameAllocator::init() {
     memset((unsigned char *)largestFreeSegment, 0xFF, pageFrames.size());
 
     for (int i = 0; i < bInfo.memmap.descCount; ++i) {
-        efi_mem_desc_t *desc = (efi_mem_desc_t *)((unsigned long long)bInfo.memmap.base_addr + i * bInfo.memmap.descSize);
-        if (desc->type == 7) {
-            // EfiConventionalMemory
+        EFIMemoryDescriptor *desc = (EFIMemoryDescriptor *)((unsigned long long)bInfo.memmap.base_addr + i * bInfo.memmap.descSize);
+        if (desc->type == 7) { // EfiConventionalMemory
             free(desc->physicalAddress, desc->pageCount);
+        } else {
+            usedMemory -= 4096 * desc->pageCount;
         }
     }
     lock(largestFreeSegment, pageFrames.size() / 4096 + 1);
@@ -50,9 +47,7 @@ void PageFrameAllocator::init() {
     unsigned long long _kernelPages = (unsigned long long)_kernelSize / 4096 + 1;
     lock(&_kernelStart, _kernelPages);
 
-#if KDEBUG == true
-    Logger::ok();
-#endif
+    LOG_DEBUG_OK();
 }
 
 void PageFrameAllocator::free(void *address, unsigned long long count) {

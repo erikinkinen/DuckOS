@@ -18,12 +18,7 @@ extern "C" {
 
 int _start(BootInfo *_bInfo) {
     bInfo = *_bInfo;
-
-#if KDEBUG == true
-    SerialPort com1(1);
-    Logger::init(&com1);
-    put_rect(0x444444, 0, bInfo.fb.height - 10, bInfo.fb.width, 10);
-#endif
+    LOG_INIT();
 
     Arch::preinit();
     Memory::init();
@@ -33,14 +28,11 @@ int _start(BootInfo *_bInfo) {
     TaskManager::init();  
     FSManager::init();  
 
-#if KDEBUG == true
-    Logger::report();
-    put_rect(0xFFFFFF, 0, bInfo.fb.height - 10, bInfo.fb.width / 10, 10);
-#endif
-
     long long stdin = FSManager::open("/dev/console", 4);
     long long stdout = FSManager::open("/dev/console", 2);
     long long stderr = FSManager::open("/dev/console", 2);
+
+    LOG_MEM_REPORT();
     
     TaskManager::user_exec("/init", nullptr, nullptr);
 

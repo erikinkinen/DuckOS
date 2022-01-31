@@ -30,18 +30,35 @@ typedef struct
     unsigned long long ss;
 } InterruptFrame;
 
-__attribute__((interrupt)) static void pagefault_handler(InterruptFrame* frame);
-__attribute__((interrupt)) static void doublefault_handler(InterruptFrame* frame);
-__attribute__((interrupt)) static void gpfault_handler(InterruptFrame* frame);
-extern "C" {
-    extern __attribute__((interrupt)) void syscall_handler(InterruptFrame* frame);
-    unsigned long long syscall_handler_c(unsigned long long fn, unsigned long long a1, unsigned long long a2, unsigned long long a3, unsigned long long a4, unsigned long long a5);
-}
+typedef struct
+{
+    unsigned long long r15;
+    unsigned long long r14;
+    unsigned long long r13;
+    unsigned long long r12;
+    unsigned long long r11;
+    unsigned long long r10;
+    unsigned long long r9;
+    unsigned long long r8;
+    unsigned long long rbp;
+    unsigned long long rdi;
+    unsigned long long rsi;
+    unsigned long long rdx;
+    unsigned long long rcx;
+    unsigned long long rbx;
+    unsigned long long rax;
+    unsigned long long int_no;
+    unsigned long long err_no;
+    InterruptFrame frame;
+} InterruptRegisters;
 
 class IDTManager {
 public:
     static void init();
     static void register_handler(unsigned char int_no, void (*handler)(InterruptFrame *));
+    static InterruptRegisters *isr_handler(InterruptRegisters *regs);
+    static void syscall_handler(InterruptRegisters *regs);
 private:
     static void set_offset(InterruptDescriptor *descriptor, unsigned long long offset);
+    static const char *error_msgs[];
 };

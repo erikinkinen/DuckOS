@@ -2,6 +2,7 @@
 #define _SYSCALL_H 1
 
 #include <sys/types.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,8 +13,8 @@ static inline uint64_t sys_write(FILE *f, char  *buf, uint64_t count) {
 	asm volatile (
 			"int $0x80;\n" 
 			: "=a"(ret)
-			: "D"(1), "S"(f), "d"(buf), "c"(count)
-            : "memory"
+			: "a"(0x1), "D"(f), "S"(buf), "d"(count)
+            : "memory", "cc"
 			);
 	return ret;
 }

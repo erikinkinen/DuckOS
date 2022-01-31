@@ -25,7 +25,6 @@ OBJS += \
 
 ifeq ($(ARCH), x86_64)
 ARCHOBJS += \
-		task_asm.o \
 		drivers/pic.o \
 		drivers/pit.o \
 		interrupts/idt.o \

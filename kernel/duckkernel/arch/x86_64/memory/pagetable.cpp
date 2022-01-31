@@ -19,12 +19,9 @@ void PageTableManager::enable() {
 }
 
 void PageTableManager::init() {
-#if KDEBUG == true
-    Logger::info("Initializing paging...");
-#endif
+    LOG_DEBUG("Initializing paging...");
 
     k = new PageTableManager();
-
     for (unsigned long long i = 0; i < Memory::size(); i += 4096) {
         k->map((void *)i, (void *)i, true, false);
     }
@@ -37,10 +34,7 @@ void PageTableManager::init() {
     }
 
     k->enable();
-
-#if KDEBUG == true
-    Logger::ok();
-#endif
+    LOG_DEBUG_OK();
 }
 
 void PageTableManager::map(void *virtualAddress, void *physicalAddress, bool readWrite, bool user) {

@@ -3,10 +3,7 @@
 #include <utils/logger.h>
 
 void PICManager::init() {
-#if KDEBUG == true
-    Logger::info("Initializing PIC...");
-#endif
-
+    LOG_DEBUG("Initializing PIC...");
     unsigned char a1, a2; 
 
     a1 = inb(PIC1_DATA);
@@ -44,9 +41,7 @@ void PICManager::init() {
     outb(PIC2_DATA, 0b11111111);
     io_wait();
 
-#if KDEBUG == true
-    Logger::ok();
-#endif
+    LOG_DEBUG_OK();
 }
 
 void PICManager::end_master() {
