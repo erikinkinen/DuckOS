@@ -5,8 +5,8 @@
 #include <task.h>
 
 void PIT::init() {
-    LOG_DEBUG("(PIT)...");
-    unsigned short divisor = 0x1000;
+    LOG_DEBUG("Initializing PIT timer...");
+    unsigned short divisor = 0x100;
     outb(0x43, 0x36);
     io_wait();
     unsigned char l = (unsigned char)(divisor & 0xFF);
@@ -15,10 +15,5 @@ void PIT::init() {
     io_wait();
     outb(0x40, h);
     io_wait();
-}
-extern "C" {
-void tick(InterruptFrame* frame, unsigned long long rax) {
-    PICManager::end_master();
-    Timer::tick(); 
-}
+    LOG_DEBUG_OK();
 }

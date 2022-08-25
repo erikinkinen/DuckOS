@@ -1,20 +1,18 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <arch/x86_64/syscall.h>
 
 int main(void) {
-	uint64_t cid, pid;
-	asm volatile (
-			"int $0x80;\n\t" 
-			: "=a"(cid)
-			: "a"(0x100)
-            : "memory");
-	asm volatile (
-			"int $0x80;\n\t" 
-			: "=a"(pid)
-			: "a"(0x101)
-            : "memory");
-			
-	printf("fork() = %d\ngetpid() = %d\n", cid, pid);
+	pid_t cid = sys_fork();
+	pid_t pid = sys_getpid();
+	if (cid > 0)
+		sys_waitpid(cid);
+					
+	printf("fork() = %d, getpid() = %d\n", cid, pid);
+
+	if (cid == 0)
+		sys_exit();
 	
+	for (;;);
 	return 0;
 }

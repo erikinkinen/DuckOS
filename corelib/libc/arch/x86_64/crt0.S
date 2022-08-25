@@ -27,8 +27,9 @@ _start:
 	call main
 
 	# Terminate the process with the exit code.
+.exit:
 	movq %rax, %rdi
-	call exit
-exit:
-	jmp exit
+	movq $0x103, %rax
+	int $0x80
+	jmp .exit
 .size _start, . - _start

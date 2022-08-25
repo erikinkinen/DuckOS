@@ -1,7 +1,6 @@
 #include <arch/arch.h>
 #include <init/boot.h>
 #include <drivers/serial.h>
-#include <drivers/timer.h>
 #include <fs/fsmanager.h>
 #include <memory/memory.h>
 #include <memory/heap.h>
@@ -16,7 +15,7 @@ extern unsigned long long _kernelEnd;
 
 extern "C" {
 
-int _start(BootInfo *_bInfo) {
+int kernel_main(BootInfo *_bInfo) {
     bInfo = *_bInfo;
     LOG_INIT();
 
@@ -24,7 +23,6 @@ int _start(BootInfo *_bInfo) {
     Memory::init();
     Arch::init();
 
-    Timer::init();
     TaskManager::init();  
     FSManager::init();  
 
@@ -37,6 +35,6 @@ int _start(BootInfo *_bInfo) {
     TaskManager::user_exec("/init", nullptr, nullptr);
 
     Logger::error("Init did not start!");
-    for (;;);
+    return 0;
 } 
 }

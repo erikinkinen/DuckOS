@@ -45,31 +45,6 @@ inline void put_char(char chr, unsigned int color, unsigned int xOff, unsigned i
     }
 }
 
-inline void print(const char *str, unsigned int color) {
-    char *chr = (char *)str;
-    while (*chr != 0) {
-        if (*chr == '\r') {
-            cursor_x = 0;
-            chr ++;
-            continue;
-        }
-        
-        if (*chr == '\n') {
-            cursor_y += 16 * console_scale_y;
-            chr ++;
-            continue;
-        }
-
-        put_char(*chr, color, cursor_x, cursor_y);
-        cursor_x += 8 * console_scale_x;
-        if (cursor_x + 8 * console_scale_x > bInfo.fb.width) {
-            cursor_x = 0;
-            cursor_y += 16 * console_scale_y;
-        }
-        chr ++;
-    }
-}
-
 class Logger {
 public:
     static void init(SerialPort *serial);

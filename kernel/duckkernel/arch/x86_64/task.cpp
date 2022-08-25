@@ -15,6 +15,8 @@ void TaskManager::init() {
     current_task->next = nullptr;
     current_task->fd_table = new FDTable();
     current_task->ptm = PageTableManager::k;
+    current_task->state = 0;
+    current_task->parent = nullptr;
     LOG_DEBUG_OK();
 }
 
@@ -23,9 +25,18 @@ InterruptRegisters *TaskManager::task_switch(InterruptRegisters *regs) {
     PageTableManager::k->enable();
 
     current_task->regs = *regs;
-    current_task = current_task->next;
-    if (!current_task)
-        current_task = ready_queue;
+    Task *original_task = current_task;
+    for (bool found = false; !found;) {
+        current_task = current_task->next;
+        if (!current_task) 
+            current_task = ready_queue;
+        if (current_task == original_task)
+            found = true;
+        if (current_task->state == 0)
+            found = true;
+    }
+
+    taskSS.ist2 = (unsigned long int)current_task->kstack_page + 0xFFF;
     regs = &(current_task->regs);
 
     current_task->ptm->enable();
@@ -39,6 +50,7 @@ void TaskManager::fork(InterruptRegisters *regs) {
     new_task->id = next_pid++;
     new_task->next = nullptr;
     new_task->fd_table = current_task->fd_table;
+    new_task->state = 0;
 
     PageTableManager *p_ptm = new PageTableManager();
     ProcessImageMap *p_pim_f = 0, *p_pim_l = 0;
@@ -77,8 +89,13 @@ void TaskManager::fork(InterruptRegisters *regs) {
     move_stack(oldstack_u, newstack_u);
     p_ptm->map((void*)0xFFFFFFFFFFFFF000, newstack_u, true, true);
     
+    void *newstack_k = PageFrameAllocator::alloc();
+    
+    new_task->stack_page = newstack_u;
+    new_task->kstack_page = newstack_k;
     new_task->ptm = p_ptm;
     new_task->pim = p_pim_f;
+    new_task->parent = parent;
 
     new_task->regs = *regs;
     new_task->regs.rax = 0;
@@ -147,7 +164,10 @@ void TaskManager::user_exec(char const *path, char const **argv,  char const **e
     void *stack_page = PageFrameAllocator::alloc();
     p_ptm->map((void*)0xFFFFFFFFFFFFF000, stack_page, true, true);
 
+    void *kstack_page = PageFrameAllocator::alloc();
+
     current_task->stack_page = stack_page;
+    current_task->kstack_page = kstack_page;
     current_task->ptm = p_ptm;
     current_task->pim = p_pim_f;
     p_ptm->enable();
@@ -171,4 +191,22 @@ void TaskManager::move_stack(void *oldstack, void *newstack) {
 
 long long TaskManager::getpid() {
     return current_task->id;
+}
+
+void TaskManager::exit() {
+    if (ready_queue == current_task) {
+        if (current_task->next == nullptr) {
+            asm("1:cli;\nhlt;\njmp 1b;\n");
+        }
+        ready_queue = current_task->next;
+    }
+    Task *previous = nullptr;
+    for (Task *cur = ready_queue; cur; cur = cur->next) {
+        if (cur->next == current_task) {
+            previous = cur;
+            break;
+        }
+    }
+    if (!previous) return;
+    previous->next = current_task->next;
 }

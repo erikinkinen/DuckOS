@@ -36,7 +36,7 @@ void PICManager::init() {
     outb(PIC2_DATA, 0); 
     io_wait();
 
-    outb(PIC1_DATA, 0b11111110);
+    outb(PIC1_DATA, 0b11111100);
     io_wait();
     outb(PIC2_DATA, 0b11111111);
     io_wait();

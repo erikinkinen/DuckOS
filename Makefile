@@ -8,9 +8,12 @@ TOOLBUILDDIR ?= $(CURDIR)/out/build/tools
 TOOLROOTDIR ?= $(CURDIR)/out/toolchain
 
 ifeq ($(ARCH), x86_64)
-OVMFDIR ?= /usr/share/edk2-ovmf/x64
+EDKDIR ?= /usr/share/edk2/ovmf
+EDKCODE ?= $(EDKDIR)/OVMF_CODE.fd
+EDKVARS ?= $(EDKDIR)/OVMF_VARS.fd
+QEMUARGS ?= -drive format=raw,file=$(BUILDDIR)/$(OSNAME).img -m 256M -cpu qemu64 -drive if=pflash,format=raw,unit=0,file="$(EDKCODE)",readonly=on -drive if=pflash,format=raw,unit=1,file="$(BUILDDIR)/QEMU_VARS.$(ARCH).fd" -net none -serial stdio
 else
-OVMFDIR ?= /usr/share/edk2-ovmf/$(ARCH)
+$(error Architecture specified is not supported)
 endif
 
 PROJECTS += \
@@ -42,14 +45,14 @@ clean:
 
 image: 
 	@echo -e "\e[1;31mBuilding $(OSNAME) image...\e[1;0m"
-	@dd if=/dev/zero of=$(BUILDDIR)/$(OSNAME).img bs=512 count=93750
+	@dd if=/dev/zero of=$(BUILDDIR)/$(OSNAME).img bs=512 count=131072
 	@mkfs.fat $(BUILDDIR)/$(OSNAME).img
 	@mcopy -s -i $(BUILDDIR)/$(OSNAME).img $(SYSROOTDIR)/* ::/
 
 run:
 	@echo -e "\e[1;31mRunning $(OSNAME) in qemu emulator...\e[1;0m"
-	@[[ -f "$(BUILDDIR)/OVMF_VARS.fd" ]] || cp $(OVMFDIR)/OVMF_VARS.fd $(BUILDDIR)/
-	@qemu-system-$(ARCH) -drive format=raw,file=$(BUILDDIR)/$(OSNAME).img -m 256M -cpu qemu64 -drive if=pflash,format=raw,unit=0,file="$(OVMFDIR)/OVMF_CODE.fd",readonly=on -drive if=pflash,format=raw,unit=1,file="$(BUILDDIR)/OVMF_VARS.fd" -net none -serial stdio
+	@[[ -z "$(EDKVARS)" ]] || [[ -f "$(BUILDDIR)/QEMU_VARS.$(ARCH).fd" ]] || cp $(EDKVARS) "$(BUILDDIR)/QEMU_VARS.$(ARCH).fd"
+	@qemu-system-$(ARCH) $(QEMUARGS)
 
 super: toolchain all image
 

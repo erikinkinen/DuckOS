@@ -5,6 +5,8 @@
 #define PSF1_MAGIC0 0x36
 #define PSF1_MAGIC1 0x04
 
+#define ERR_MSG L"Could not load DuckOS!\n"
+
 typedef unsigned long long size_t;
 
 typedef struct {
@@ -123,9 +125,12 @@ PSF1Font* LoadPSF1Font(EFI_FILE *dir, CHAR16 *path, EFI_HANDLE img_handle, EFI_S
 EFI_STATUS efi_main (EFI_HANDLE img_handle, EFI_SYSTEM_TABLE *st) {
 	InitializeLib(img_handle, st);
 	
-	EFI_FILE *kernel = load_file(NULL, L"KERNEL.DUCK", img_handle, st);
+	EFI_FILE *kernel = load_file(NULL, L"kernel.duck", img_handle, st);
 
-	if (kernel == NULL) return EFI_LOAD_ERROR;
+	if (kernel == NULL) {
+		Print(ERR_MSG);
+		for (;;);
+	}
 
 	Elf64_Ehdr header;
 	UINTN header_size = sizeof(header);
@@ -134,11 +139,12 @@ EFI_STATUS efi_main (EFI_HANDLE img_handle, EFI_SYSTEM_TABLE *st) {
 	if (
 		memcmp(&header.e_ident[EI_MAG0], ELFMAG, SELFMAG) != 0 ||
 		header.e_ident[EI_CLASS] != ELFCLASS64 ||
-		header.e_ident[EI_DATA] != ELFDATA2LSB ||
 		header.e_type != ET_EXEC ||
-		header.e_machine != EM_X86_64 ||
 		header.e_version != EV_CURRENT
-	) return EFI_LOAD_ERROR;
+	) {
+		Print(ERR_MSG);
+		for (;;);
+	};
 
 	Elf64_Phdr *phdrs;
 	kernel->SetPosition(kernel, header.e_phoff);
@@ -175,11 +181,15 @@ EFI_STATUS efi_main (EFI_HANDLE img_handle, EFI_SYSTEM_TABLE *st) {
 	} else boot_info.initrd = NULL;
 
 	boot_info.font = LoadPSF1Font(NULL, L"FONT.PSF", img_handle, st);
-	if (boot_info.font == NULL)
-		return EFI_LOAD_ERROR;
+	if (boot_info.font == NULL){
+		Print(ERR_MSG);
+		for (;;);
+	}
 
-	if (init_gop() != EFI_SUCCESS) 
-		return EFI_LOAD_ERROR;
+	if (init_gop() != EFI_SUCCESS){
+		Print(ERR_MSG);
+		for (;;);
+	}
 
 	UINTN mapKey = 0;
 	UINT32 descVersion = 0;

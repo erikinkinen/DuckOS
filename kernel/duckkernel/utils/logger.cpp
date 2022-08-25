@@ -3,7 +3,7 @@
 SerialPort *Logger::serial = nullptr;
 
 char buffer[256];
-unsigned int cursor_x, cursor_y;
+unsigned int cursor_x = 60, cursor_y = 40;
 unsigned int console_scale_x = 1;
 unsigned int console_scale_y = 1;
 
@@ -34,7 +34,7 @@ void Logger::error(const char *str) {
 
 void Logger::ok() {
     if (Logger::serial) Logger::serial->write_str(" [OK!]\r\n");
-    cursor_x = bInfo.fb.width - 56 * console_scale_x;
+    cursor_x = bInfo.fb.width - 116 * console_scale_x;
     Logger::print_screen("[ OK! ]", 0x00FF00);
 }
 
@@ -49,20 +49,20 @@ void Logger::memory_report() {
 void Logger::print_screen(const char *str, unsigned int color) {
     for (char *chr = (char *)str; *chr != 0; chr++) {
         if (*chr == '\r') {
-            cursor_x = 0;
+            cursor_x = 60;
             continue;
         }
         
         if (*chr == '\n') {
             cursor_y += 16 * console_scale_y;
-            cursor_x = 0;
+            cursor_x = 60;
             continue;
         }
 
         put_char(*chr, color, cursor_x, cursor_y);
         cursor_x += 8 * console_scale_x;
-        if (cursor_x + 8 * console_scale_x > bInfo.fb.width) {
-            cursor_x = 0;
+        if (cursor_x + 8 * console_scale_x > bInfo.fb.width - 60) {
+            cursor_x = 60;
             cursor_y += 16 * console_scale_y;
         }
     }

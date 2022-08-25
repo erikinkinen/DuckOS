@@ -61,7 +61,10 @@ struct Task
 	PageTableManager *ptm;
    ProcessImageMap *pim;
    void *stack_page;
+   void *kstack_page;
    FDTable *fd_table;
+   unsigned long long state;
+   Task *parent;
    Task *next;
    InterruptRegisters regs;
 };
@@ -77,8 +80,9 @@ public:
    static void user_exec(char const *path, char const **argv,  char const **envp);
    static void move_stack(void *oldstack, void *newstack);
    static long long getpid();
+   static void exit();
    static Task *current_task;
-private:
    static Task *ready_queue;
+private:
    static long long next_pid;
 };

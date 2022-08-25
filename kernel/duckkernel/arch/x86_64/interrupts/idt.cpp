@@ -60,6 +60,7 @@ void IDTManager::init() {
         else int_d->type_attr = IDT_TA_InterruptGate;
         int_d->selector = 8;
         if (int_no < 0x20) int_d->ist = 1;
+        else if (int_no == 0x80) int_d->ist = 2;
     }
 
     asm volatile ("lidt %0" : : "m" (idtr));
@@ -106,7 +107,12 @@ InterruptRegisters *IDTManager::isr_handler(InterruptRegisters *regs) {
         return TaskManager::task_switch(regs);
     }
 
+    if (regs->int_no == 0x21) {
+        LOG_DEBUG("KINT");
+    }
+
     if (regs->int_no == 0x80) {
+        asm volatile ("sti");
         syscall_handler(regs);
     }
     return regs;
@@ -127,8 +133,39 @@ void IDTManager::syscall_handler(InterruptRegisters *regs) {
     } else if (fn == 0x3) {
         regs->rax = FSManager::open((const char *)a1, a2);
     } else if (fn == 0x100) {
+        asm volatile ("cli");
         TaskManager::fork(regs);
     } else if (fn == 0x101) {
         regs->rax = TaskManager::getpid();
+    } else if (fn == 0x102) {
+        Task *to_wait_for = nullptr;
+        for (Task *cur = TaskManager::ready_queue; cur; cur = cur->next) {
+            if (cur->id == a1) {
+                for (Task *pcur = cur->parent; pcur; pcur = pcur->parent){
+                    if (pcur->id == TaskManager::current_task->id) {
+                        to_wait_for = cur;
+                    }
+                }
+            }
+        }
+        if (to_wait_for) {
+            while (true) {
+                Task *candidate = nullptr;
+                for (Task *cur = TaskManager::ready_queue; cur; cur = cur->next) {
+                    if (cur->id == a1) {
+                        candidate = cur;
+                    }
+                }
+                if (!candidate) {
+                    break;
+                }
+            }
+            
+        }
+    } else if (fn == 0x103) {
+        asm volatile ("cli");
+        TaskManager::exit();
+        asm volatile ("sti");
+        for (;;);
     } else regs->rax = -1;
 }

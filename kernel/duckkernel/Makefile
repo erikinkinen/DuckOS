@@ -7,12 +7,17 @@ CXX = $(TOOLROOTDIR)/usr/bin/$(ARCH)-duckos-g++
 LD = $(TOOLROOTDIR)/usr/bin/$(ARCH)-duckos-ld
 
 CFLAGS = -ffreestanding -fshort-wchar -fno-stack-protector -fno-exceptions -fno-rtti \
-		 -mno-red-zone -mgeneral-regs-only -I$(CURDIR)/include -I$(CURDIR)/include/arch/$(ARCH) -DARCH=$(ARCH)
-LDFLAGS = -T $(CURDIR)/kernel.ld -static -Bsymbolic -nostdlib
+		 -mgeneral-regs-only -I$(CURDIR)/include -I$(CURDIR)/include/arch/$(ARCH) -DARCH=$(ARCH)
+LDFLAGS = -T $(CURDIR)/kernel.$(ARCH).ld -static -Bsymbolic -nostdlib
+
+ifeq ($(ARCH), x86_64)
+CFLAGS += -mno-red-zone
+else
+$(error Architecture specified is not supported)
+endif
 
 OBJS += \
 		main.o \
-		drivers/timer.o \
 		fs/devfs.o \
 		fs/fsmanager.o \
 		fs/initrd.o \
@@ -35,6 +40,7 @@ ARCHOBJS += \
 endif
 
 ARCHOBJS += \
+		entry_asm.o \
 		arch.o \
 		drivers/serial.o \
 		task.o

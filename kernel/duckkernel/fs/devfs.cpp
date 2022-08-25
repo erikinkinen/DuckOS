@@ -17,20 +17,20 @@ signed long long ConsoleFile::write(const void *buf, unsigned long long nbytes) 
         }
 
         if (*chr == '\r') {
-            cursor_x = 0;
+            cursor_x = 60;
             continue;
         }
         
         if (*chr == '\n') {
             cursor_y += 16 * console_scale_y;
-            cursor_x = 0;
+            cursor_x = 60;
             continue;
         }
 
         put_char(*chr, color, cursor_x, cursor_y);
         cursor_x += 8 * console_scale_x;
-        if (cursor_x + 8 * console_scale_x > bInfo.fb.width) {
-            cursor_x = 0;
+        if (cursor_x + 8 * console_scale_x > bInfo.fb.width - 60) {
+            cursor_x = 60;
             cursor_y += 16 * console_scale_y;
         }
     }
